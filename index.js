@@ -314,6 +314,27 @@ const updateNominationsRemainingUI = (newNominationsRemaining) => {
  */
 function voteForPokemon(pokemon, upvote) {
 	// your code goes here!
+	if (id != null && username.length > 0) {
+		type_str = "VOTE"; 
+		var eventDataToSendToServer = {
+			type: type_str, 
+			candidate: pokemon, 
+			voter: id, 
+			upvote: upvote
+		}
+
+		if (upvote && votes > 0){
+			votes-=1;
+			var socket_str = JSON.stringify(eventDataToSendToServer); 
+			socket.send(socket_str);
+		} else if (!upvote) {
+			votes += 1
+			var socket_str = JSON.stringify(eventDataToSendToServer); 
+			socket.send(socket_str);
+		}
+		updateVotesRemainingUI(votes);
+		
+	}
 }
 
 /**
@@ -324,6 +345,26 @@ function voteForPokemon(pokemon, upvote) {
  */
 function nominatePokemon(pokemon, nominate) {
 	// your code goes here!
+	if (id != null && username.length > 0) {
+		nom_str = "NOMINATE";
+		var eventDataToSendToServer = {
+			type: nom_str, 
+			nominee: pokemon, 
+			nominater: id, 
+			unnominate: !nominate
+		}
+		if (nominate && nominations > 0){
+			nominations-=1;
+			var socket_str = JSON.stringify(eventDataToSendToServer); 
+			socket.send(socket_str);
+		} else if (!nomintate) {
+			nominations += 1
+			var socket_str = JSON.stringify(eventDataToSendToServer); 
+			socket.send(socket_str);
+		}
+
+		updateNominationsRemainingUI(nominations);
+	}
 }
 
 /**
@@ -341,6 +382,7 @@ function connect() {
 		 * TODO: Write a line here opening a socket connection with the server, and assign
 		 * it to the socket variable!
 		 */
+		socket = new WebSocket(URL)
 
 		
 		// heartbeat functionality - do NOT touch! D:<
@@ -375,6 +417,10 @@ function connect() {
 					 * TODO: Write logic here handling when the client
 					 * receives a "NOMINEES" event from the server
 					 */
+
+					// update nominees to the initial nominees sent by the server
+					updateNominees(eventData.nominees);
+
 					break;
 				}
 				case "UPDATE": {
@@ -382,6 +428,12 @@ function connect() {
 					 * TODO: Write logic here handling when the client
 					 * receives a "UPDATE" event from the server
 					 */
+					votes = event.data.user.votes;
+					nominations = event.data.user.nominations;
+
+					updateVotesRemainingUI(event.data.user.votes);
+					updateNominationsRemainingUI(event.data.user.nominations);
+
 					break;
 				}
 				case "GREET": {
